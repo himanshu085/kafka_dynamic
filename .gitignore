@@ -1,9 +1,0 @@
-.terraform/
-.terraform/
-*.tfstate
-*.tfstate.backup
-terraform.tfstate.d/
-.terraform/
-*.tfstate
-*.tfstate.backup
-terraform.tfstate.d/
