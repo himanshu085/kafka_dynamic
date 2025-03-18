@@ -80,8 +80,8 @@ resource "aws_instance" "private_instance" {
       "export DEBIAN_FRONTEND=noninteractive",
       "sudo apt update -y",
 
-      # Install prerequisites
-      "sudo apt install -y unzip curl python3 python3-pip",
+      # Update and install dependencies
+        "sudo apt update -y && sudo apt install -y software-properties-common unzip curl",
 
       # Install Ansible if not already installed
       "if ! command -v ansible &> /dev/null; then sudo add-apt-repository --yes --update ppa:ansible/ansible && sudo apt-get update -y && sudo apt-get install -yq ansible; fi",
