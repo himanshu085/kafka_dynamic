@@ -93,12 +93,6 @@ resource "aws_instance" "private_instance" {
       "unzip awscliv2.zip",
       "sudo ./aws/install",
       "aws --version",
-
-      # Install boto3 and botocore for Ansible AWS integration
-      "pip3 install --user boto3 botocore",
-      
-      # Verify boto3 installation
-      "python3 -c 'import boto3; print(boto3.__version__)'",
     ]
 
     connection {
