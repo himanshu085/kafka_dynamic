@@ -82,6 +82,10 @@ resource "aws_instance" "private_instance" {
     # Install prerequisites
       "sudo apt update -y",
       "sudo apt install -y unzip curl",  # Install unzip and curl
+    # Install Ansible if not already installed
+        "if ! command -v ansible &> /dev/null; then sudo add-apt-repository --yes --update ppa:ansible/ansible && sudo apt-get update -y && sudo apt-get install -yq ansible; fi",
+        "ansible --version",
+        "which ansible",
 
       # Install AWS CLI
       "curl \"https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip\" -o \"awscliv2.zip\"",
