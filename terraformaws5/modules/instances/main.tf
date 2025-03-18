@@ -89,27 +89,6 @@ resource "aws_instance" "private_instance" {
       "sudo ./aws/install",
       "aws --version",  # Verify installation
 
-      # Install dos2unix
-      "sudo apt update && sudo apt install dos2unix -y",
-
-      # Download Kafka install script from S3
-      "sudo aws s3 cp s3://parashar089/kafka_install.sh .",
-
-      # Convert script to Unix format
-      "sudo dos2unix kafka_install.sh",
-
-      # Set execution permissions and run the script
-      "sudo chmod +x kafka_install.sh",
-      "sudo sh kafka_install.sh",
-
-      # 🔹 Download Kafka backup script, convert, and execute
-      "sudo aws s3 cp s3://parashar089/kafka_backup.sh /opt/kafka/kafka_backup.sh",
-      "sudo dos2unix /opt/kafka/kafka_backup.sh",
-      "sudo chmod +x /opt/kafka/kafka_backup.sh",
-      "sudo sh /opt/kafka/kafka_backup.sh",  # Execute the script immediately
-
-      # 🔹 Add cron job to run backup every midnight
-      "(crontab -l 2>/dev/null; echo '0 0 * * * /bin/bash /opt/kafka/kafka_backup.sh >> /home/ubuntu/kafka_backup.log 2>&1') | crontab -"
     ]
     connection {
       type                = "ssh"
