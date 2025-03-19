@@ -1,3 +1,4 @@
+# Public Instance
 resource "aws_instance" "public_instance" {
   ami                    = var.ami
   instance_type          = var.instance_type
@@ -41,15 +42,15 @@ resource "aws_iam_policy" "s3_read_write_policy" {
           "s3:DeleteObject"
         ]
         Resource = [
-          "arn:aws:s3:::parashar089",        # List bucket contents
-          "arn:aws:s3:::parashar089/*"       # Read & Write files in the bucket
+          "arn:aws:s3:::parashar085",
+          "arn:aws:s3:::parashar085/*"
         ]
       }
     ]
   })
 }
 
-# Attach S3 Read/Write Policy to EC2 Role
+# Attach Policy to EC2 Role
 resource "aws_iam_role_policy_attachment" "ec2_role_s3_rw_policy" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = aws_iam_policy.s3_read_write_policy.arn
@@ -61,40 +62,36 @@ resource "aws_iam_instance_profile" "ec2_role" {
   role = aws_iam_role.ec2_role.name
 }
 
-# Private Instance with SSH Key and user_data
+# **Private Instance 1**
 resource "aws_instance" "private_instance" {
   ami                    = var.ami
   instance_type          = var.instance_type
   subnet_id              = var.private_subnet_id
   vpc_security_group_ids = [var.private_security_group_id]
   key_name               = var.key_name
+  iam_instance_profile   = aws_iam_instance_profile.ec2_role.name
 
   tags = {
     Name = "Private-Instance"
   }
-  iam_instance_profile = aws_iam_instance_profile.ec2_role.name  # Associate the IAM instance profile
-  
-  # User data script to run the installation and configuration
+
   provisioner "remote-exec" {
-    inline = [
-      "export DEBIAN_FRONTEND=noninteractive",
-      "sudo apt update -y",
-
-      # Update and install dependencies
-        "sudo apt update -y && sudo apt install -y software-properties-common unzip curl",
-
-      # Install Ansible if not already installed
-      "if ! command -v ansible &> /dev/null; then sudo add-apt-repository --yes --update ppa:ansible/ansible && sudo apt-get update -y && sudo apt-get install -yq ansible; fi",
-      "ansible --version",
-      "which ansible",
-
-      # Install AWS CLI
-      "curl \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o \"awscliv2.zip\"",
-      "unzip awscliv2.zip",
-      "sudo ./aws/install",
-      "aws --version",
+   inline = [
+        # Set environment for non-interactive installations
+        "export DEBIAN_FRONTEND=noninteractive",
+        # Update system and install dependencies if not present
+        "sudo apt-get update -y",
+        "sudo apt-get install -yq software-properties-common unzip curl",
+        # Install Ansible if not already installed
+        "if ! command -v ansible &> /dev/null; then sudo add-apt-repository --yes --update ppa:ansible/ansible && sudo apt-get update -y && sudo apt-get install -yq ansible; fi",
+        "ansible --version",
+        "which ansible",
+        # Install AWS CLI if not already installed
+        "if ! command -v aws &> /dev/null; then curl -s 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip -q awscliv2.zip && sudo ./aws/install && rm -rf awscliv2.zip aws; fi",
+        # Refresh session and verify AWS CLI installation
+        "hash -r",
+        "aws --version"
     ]
-
     connection {
       type                = "ssh"
       user                = "ubuntu"
@@ -107,7 +104,49 @@ resource "aws_instance" "private_instance" {
   }
 }
 
-# Network Load Balancer (NLB)
+# **Private Instance 2**
+resource "aws_instance" "private_instance_2" {
+  ami                    = var.ami
+  instance_type          = var.instance_type
+  subnet_id              = var.private_subnet_id
+  vpc_security_group_ids = [var.private_security_group_id]
+  key_name               = var.key_name
+  iam_instance_profile   = aws_iam_instance_profile.ec2_role.name
+
+  tags = {
+    Name = "Private-Instance"
+  }
+
+  provisioner "remote-exec" {
+   inline = [
+        # Set environment for non-interactive installations
+        "export DEBIAN_FRONTEND=noninteractive",
+        # Update system and install dependencies if not present
+        "sudo apt-get update -y",
+        "sudo apt-get install -yq software-properties-common unzip curl",
+        # Install Ansible if not already installed
+        "if ! command -v ansible &> /dev/null; then sudo add-apt-repository --yes --update ppa:ansible/ansible && sudo apt-get update -y && sudo apt-get install -yq ansible; fi",
+        "ansible --version",
+        "which ansible",
+        # Install AWS CLI if not already installed
+        "if ! command -v aws &> /dev/null; then curl -s 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip -q awscliv2.zip && sudo ./aws/install && rm -rf awscliv2.zip aws; fi",
+        # Refresh session and verify AWS CLI installation
+        "hash -r",
+        "aws --version"
+    ]
+    connection {
+      type                = "ssh"
+      user                = "ubuntu"
+      private_key         = file(var.private_key_path)
+      host                = self.private_ip
+      bastion_host        = var.bastion_host
+      bastion_user        = "ubuntu"
+      bastion_private_key = file(var.private_key_path)
+    }
+  }
+}
+
+# **Network Load Balancer (NLB)**
 resource "aws_lb" "kafka_nlb" {
   name               = "kafka-nlb"
   internal           = false
@@ -119,7 +158,7 @@ resource "aws_lb" "kafka_nlb" {
   }
 }
 
-# NLB Target Group
+# **NLB Target Group**
 resource "aws_lb_target_group" "kafka_tg" {
   name     = "kafka-target-group"
   port     = 9092
@@ -139,7 +178,7 @@ resource "aws_lb_target_group" "kafka_tg" {
   }
 }
 
-# Add Listener to the NLB on port 9092
+# **NLB Listener**
 resource "aws_lb_listener" "kafka_nlb_listener" {
   load_balancer_arn = aws_lb.kafka_nlb.arn
   port              = 9092
@@ -151,9 +190,15 @@ resource "aws_lb_listener" "kafka_nlb_listener" {
   }
 }
 
-# Attach EC2 instance to Target Group
-resource "aws_lb_target_group_attachment" "kafka_target" {
+# **Attach Private Instances to NLB**
+resource "aws_lb_target_group_attachment" "kafka_target_1" {
   target_group_arn = aws_lb_target_group.kafka_tg.arn
   target_id        = aws_instance.private_instance.id
+  port             = 9092
+}
+
+resource "aws_lb_target_group_attachment" "kafka_target_2" {
+  target_group_arn = aws_lb_target_group.kafka_tg.arn
+  target_id        = aws_instance.private_instance_2.id
   port             = 9092
 }
