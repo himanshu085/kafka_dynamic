@@ -34,7 +34,7 @@ resource "aws_security_group" "private_sg" {
     from_port   = 9092
     to_port     = 9092
     protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
+    security_groups = [aws_security_group.public_sg.id]  # Allow from public SG
   }
 
   ingress {
@@ -58,4 +58,3 @@ resource "aws_security_group" "private_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
