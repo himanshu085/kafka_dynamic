@@ -86,11 +86,16 @@ resource "aws_instance" "private_instance" {
         "if ! command -v ansible &> /dev/null; then sudo add-apt-repository --yes --update ppa:ansible/ansible && sudo apt-get update -y && sudo apt-get install -yq ansible; fi",
         "ansible --version",
         "which ansible",
-        # Install AWS CLI if not already installed
-        "if ! command -v aws &> /dev/null; then curl -s 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip -q awscliv2.zip && sudo ./aws/install && rm -rf awscliv2.zip aws; fi",
-        # Refresh session and verify AWS CLI installation
-        "hash -r",
-        "aws --version"
+        # Update package lists and install unzip if not installed
+       "sudo apt-get update -y",
+       "if ! command -v unzip &> /dev/null; then sudo apt-get install -y unzip; fi",
+
+       # Install AWS CLI if not already installed
+       "if ! command -v aws &> /dev/null; then curl -s 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip -q awscliv2.zip && sudo ./aws/install && rm -rf awscliv2.zip aws; fi",
+
+       # Refresh session and verify AWS CLI installation
+       "hash -r",
+       "aws --version"
     ]
     connection {
       type                = "ssh"
@@ -128,11 +133,16 @@ resource "aws_instance" "private_instance_2" {
         "if ! command -v ansible &> /dev/null; then sudo add-apt-repository --yes --update ppa:ansible/ansible && sudo apt-get update -y && sudo apt-get install -yq ansible; fi",
         "ansible --version",
         "which ansible",
-        # Install AWS CLI if not already installed
-        "if ! command -v aws &> /dev/null; then curl -s 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip -q awscliv2.zip && sudo ./aws/install && rm -rf awscliv2.zip aws; fi",
-        # Refresh session and verify AWS CLI installation
-        "hash -r",
-        "aws --version"
+        # Update package lists and install unzip if not installed
+       "sudo apt-get update -y",
+       "if ! command -v unzip &> /dev/null; then sudo apt-get install -y unzip; fi",
+
+       # Install AWS CLI if not already installed
+       "if ! command -v aws &> /dev/null; then curl -s 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip -q awscliv2.zip && sudo ./aws/install && rm -rf awscliv2.zip aws; fi",
+
+       # Refresh session and verify AWS CLI installation
+       "hash -r",
+       "aws --version"
     ]
     connection {
       type                = "ssh"
