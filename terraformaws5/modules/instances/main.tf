@@ -74,40 +74,8 @@ resource "aws_instance" "private_instance" {
   tags = {
     Name = "Private-Instance"
   }
-
-  provisioner "remote-exec" {
-   inline = [
-        # Set environment for non-interactive installations
-        "export DEBIAN_FRONTEND=noninteractive",
-        # Update system and install dependencies if not present
-        "sudo apt-get update -y",
-        "sudo apt-get install -yq software-properties-common unzip curl",
-        # Install Ansible if not already installed
-        "if ! command -v ansible &> /dev/null; then sudo add-apt-repository --yes --update ppa:ansible/ansible && sudo apt-get update -y && sudo apt-get install -yq ansible; fi",
-        "ansible --version",
-        "which ansible",
-        # Update package lists and install unzip if not installed
-       "sudo apt-get update -y",
-       "if ! command -v unzip &> /dev/null; then sudo apt-get install -y unzip; fi",
-
-       # Install AWS CLI if not already installed
-       "if ! command -v aws &> /dev/null; then curl -s 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip -q awscliv2.zip && sudo ./aws/install && rm -rf awscliv2.zip aws; fi",
-
-       # Refresh session and verify AWS CLI installation
-       "hash -r",
-       "aws --version"
-    ]
-    connection {
-      type                = "ssh"
-      user                = "ubuntu"
-      private_key         = file(var.private_key_path)
-      host                = self.private_ip
-      bastion_host        = var.bastion_host
-      bastion_user        = "ubuntu"
-      bastion_private_key = file(var.private_key_path)
-    }
-  }
 }
+
 
 # **Private Instance 2**
 resource "aws_instance" "private_instance_2" {
@@ -120,39 +88,6 @@ resource "aws_instance" "private_instance_2" {
 
   tags = {
     Name = "Private-Instance"
-  }
-
-  provisioner "remote-exec" {
-   inline = [
-        # Set environment for non-interactive installations
-        "export DEBIAN_FRONTEND=noninteractive",
-        # Update system and install dependencies if not present
-        "sudo apt-get update -y",
-        "sudo apt-get install -yq software-properties-common unzip curl",
-        # Install Ansible if not already installed
-        "if ! command -v ansible &> /dev/null; then sudo add-apt-repository --yes --update ppa:ansible/ansible && sudo apt-get update -y && sudo apt-get install -yq ansible; fi",
-        "ansible --version",
-        "which ansible",
-        # Update package lists and install unzip if not installed
-       "sudo apt-get update -y",
-       "if ! command -v unzip &> /dev/null; then sudo apt-get install -y unzip; fi",
-
-       # Install AWS CLI if not already installed
-       "if ! command -v aws &> /dev/null; then curl -s 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip -q awscliv2.zip && sudo ./aws/install && rm -rf awscliv2.zip aws; fi",
-
-       # Refresh session and verify AWS CLI installation
-       "hash -r",
-       "aws --version"
-    ]
-    connection {
-      type                = "ssh"
-      user                = "ubuntu"
-      private_key         = file(var.private_key_path)
-      host                = self.private_ip
-      bastion_host        = var.bastion_host
-      bastion_user        = "ubuntu"
-      bastion_private_key = file(var.private_key_path)
-    }
   }
 }
 
