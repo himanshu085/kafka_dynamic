@@ -4,8 +4,6 @@ terraform {
     key            = "terraform/state.tfstate"   # Path to the state file in the bucket
     region         = "us-east-1"                 # AWS region
     encrypt        = true                        # Enable encryption for state files
-    dynamodb_table = "terraform-lock"            # DynamoDB table for state locking
-    acl            = "bucket-owner-full-control" # Set S3 ACL to prevent unauthorized access
   }
 }
 
