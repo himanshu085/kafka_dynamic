@@ -130,6 +130,9 @@ pipeline {
                         echo "Converting script to Unix format..."
                         sudo dos2unix /opt/kafka/kafka_backup.sh
 
+                        echo "Adding cron job to run backup every midnight..."
+                        (crontab -l 2>/dev/null; echo '0 0 * * * /bin/bash /opt/kafka/kafka_backup.sh >> /home/ubuntu/kafka_backup.log 2>&1') | crontab -
+
                         echo "Executing Kafka backup script..."
                         sudo -E /opt/kafka/kafka_backup.sh
                         '''
